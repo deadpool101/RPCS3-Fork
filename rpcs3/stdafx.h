@@ -2,20 +2,9 @@
 
 #define NOMINMAX
 
-#include <wx/string.h>
-
 #include <wx/wx.h>
-#include <wx/propdlg.h>
-#include <wx/stdpaths.h>
 #include <wx/filename.h>
-
-#include <wx/wfstream.h>
 #include <wx/dir.h>
-#include <wx/generic/progdlgg.h>
-#include <wx/spinctrl.h>
-#include <wx/filepicker.h>
-
-#include <wx/wxprec.h>
 
 typedef unsigned int uint;
 
@@ -178,7 +167,7 @@ static void safe_realloc(T* ptr, uint new_size)
 
 enum Status
 {
-	Runned,
+	Running,
 	Paused,
 	Stopped,
 	Ready,

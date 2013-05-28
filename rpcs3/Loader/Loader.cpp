@@ -110,10 +110,18 @@ LoaderBase* Loader::SearchLoader()
 
 	LoaderBase* l;
 
-	if((l=new ELFLoader(*m_stream))->LoadInfo()) return l;
+	if((l=new ELFLoader(*m_stream))->Validate())
+	{
+		l->LoadInfo();
+		return l;
+	}
 	delete l;
 
-	if((l=new SELFLoader(*m_stream))->LoadInfo()) return l;
+	if((l=new SELFLoader(*m_stream))->Validate()) 
+	{
+		l->LoadInfo();
+		return l;
+	}
 	delete l;
 
 	return nullptr;

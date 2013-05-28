@@ -1,10 +1,12 @@
 # For MSVC
 *.lastcodeanalysissucceeded
 *.pdb
+*.idb
 *.ilk
 *.obj
 *.pch
 *.log
+*.tlog
 *.dll
 *.rar
 *.exe
@@ -17,11 +19,13 @@
 *.suo
 *.aps
 *.exp
+*.lastbuildstate
 Debug
 DebugFast
 Release
 ipch
 
+bin
 libs
 
 # For Mac

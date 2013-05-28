@@ -22,13 +22,14 @@ bool Rpcs3App::OnInit()
 	SetTopWindow(m_MainFrame);
 	Emu.Init();
 
-	(new CompilerELF(m_MainFrame))->Show();
+	if(Ini.ShowCompilerELF.GetValue())
+		(new CompilerELF(m_MainFrame))->Show();
+
 	m_debugger_frame = new DebuggerPanel(m_MainFrame);
 	ConLogFrame = new LogFrame(m_MainFrame);
 
 	m_MainFrame->AddPane(ConLogFrame, "Log", wxAUI_DOCK_BOTTOM);
 	m_MainFrame->AddPane(m_debugger_frame, "Debugger", wxAUI_DOCK_RIGHT);
-	//ConLogFrame->Show();
 	m_MainFrame->Show();
 
 	m_MainFrame->DoSettings(true);

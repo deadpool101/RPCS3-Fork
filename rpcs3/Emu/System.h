@@ -75,7 +75,6 @@ class Emulator
 
 public:
 	wxString m_path;
-	bool IsSelf;
 
 	Emulator();
 
@@ -115,7 +114,7 @@ public:
 	void Resume();
 	void Stop();
 
-	__forceinline bool IsRunned()	const { wxCriticalSectionLocker lock(m_cs_status); return m_status == Runned; }
+	__forceinline bool IsRunning()	const { wxCriticalSectionLocker lock(m_cs_status); return m_status == Running; }
 	__forceinline bool IsPaused()	const { wxCriticalSectionLocker lock(m_cs_status); return m_status == Paused; }
 	__forceinline bool IsStopped()	const { wxCriticalSectionLocker lock(m_cs_status); return m_status == Stopped; }
 	__forceinline bool IsReady()	const { wxCriticalSectionLocker lock(m_cs_status); return m_status == Ready; }

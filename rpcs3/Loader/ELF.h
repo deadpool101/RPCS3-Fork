@@ -49,7 +49,8 @@ public:
 
 	ELFLoader(vfsStream& f);
 	~ELFLoader() {Close();}
-
+	
+	virtual bool Validate();
 	virtual bool LoadInfo();
 	virtual bool LoadData(u64 offset = 0);
 	virtual bool Close();

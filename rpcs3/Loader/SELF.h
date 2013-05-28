@@ -88,6 +88,7 @@ class SELFLoader : public LoaderBase
 public:
 	SELFLoader(vfsStream& f);
 
+	virtual bool Validate();
 	virtual bool LoadInfo();
 	virtual bool LoadData(u64 offset = 0);
 };

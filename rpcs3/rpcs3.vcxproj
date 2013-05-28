@@ -105,7 +105,8 @@
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
     <PreBuildEvent>
-      <Command>SubWCRev $(SolutionDir)\rpcs3 $(SolutionDir)\svnrev.tmpl $(SolutionDir)\rpcs3\svnrev.h</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -262,6 +263,7 @@
     <ResourceCompile Include="rpcs3.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\git-version.h" />
     <ClInclude Include="..\Utilities\Array.h" />
     <ClInclude Include="..\Utilities\IdManager.h" />
     <ClInclude Include="..\Utilities\MTProgressDialog.h" />

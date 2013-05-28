@@ -1,16 +1,23 @@
 #include "stdafx.h"
 #include "MainFrame.h"
 #include "CompilerELF.h"
-
+#include "git-version.h"
 #include "Emu/System.h"
 #include "Ini.h"
-#include "svnrev.h"
 #include "Emu/GS/sysutil_video.h"
 #include <wx/dynlib.h>
 
 BEGIN_EVENT_TABLE(MainFrame, FrameBase)
 	EVT_CLOSE(MainFrame::OnQuit)
 END_EVENT_TABLE()
+
+wxString path[] = { "\\PS3_GAME\\USRDIR\\BOOT.BIN",
+	"\\USRDIR\\BOOT.BIN",
+	"\\BOOT.BIN",
+	"\\PS3_GAME\\USRDIR\\EBOOT.BIN",
+	"\\USRDIR\\EBOOT.BIN",
+	"\\EBOOT.BIN"
+};
 
 enum IDs
 {
@@ -35,7 +42,7 @@ MainFrame::MainFrame()
 	: FrameBase(NULL, wxID_ANY, "", "MainFrame", wxSize(280, 180))
 	, m_aui_mgr(this)
 {
-	SetLabel(wxString::Format(_PRGNAME_ " " _PRGVER_ " r%d" SVN_MOD " (" SVN_DATE ")", SVN_REV));
+	SetLabel(wxString::Format(_PRGNAME_ " git " RPCS3_GIT_VERSION));
 	wxMenuBar& menubar(*new wxMenuBar());
 
 	wxMenu& menu_boot(*new wxMenu());
@@ -48,8 +55,7 @@ MainFrame::MainFrame()
 
 	menu_boot.Append(id_boot_game, "Boot game");
 	menu_boot.AppendSeparator();
-	menu_boot.Append(id_boot_elf, "Boot Elf");
-	//menu_boot.Append(id_boot_self, "Boot Self");
+	menu_boot.Append(id_boot_elf, "Boot Elf/Self");
 
 	menu_sys.Append(id_sys_pause, "Pause");
 	menu_sys.Append(id_sys_stop, "Stop\tCtrl + S");
@@ -65,7 +71,6 @@ MainFrame::MainFrame()
 	
 	Connect( id_boot_game,  wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrame::BootGame) );
 	Connect( id_boot_elf,   wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrame::BootElf) );
-	Connect( id_boot_self,  wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrame::BootSelf) );
 
 	Connect( id_sys_pause,  wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrame::Pause) );
 	Connect( id_sys_stop,   wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrame::Stop) );
@@ -105,135 +110,71 @@ void MainFrame::DoSettings(bool load)
 
 void MainFrame::BootGame(wxCommandEvent& WXUNUSED(event))
 {
-	bool stoped = false;
+	bool stopped = false;
 
-	if(Emu.IsRunned())
+	if(Emu.IsRunning())
 	{
 		Emu.Pause();
-		stoped = true;
+		stopped = true;
 	}
 
 	wxDirDialog ctrl(this, L"Select game folder", wxEmptyString);
 
 	if(ctrl.ShowModal() == wxID_CANCEL)
 	{
-		if(stoped) Emu.Resume();
+		if(stopped) Emu.Resume();
 		return;
 	}
 
 	Emu.Stop();
 
-	const wxString& elf0  = ctrl.GetPath() + "\\PS3_GAME\\USRDIR\\BOOT.BIN";
-	const wxString& elf1  = ctrl.GetPath() + "\\USRDIR\\BOOT.BIN";
-	const wxString& elf2  = ctrl.GetPath() + "\\BOOT.BIN";
-	const wxString& self0 = ctrl.GetPath() + "\\PS3_GAME\\USRDIR\\EBOOT.BIN";
-	const wxString& self1 = ctrl.GetPath() + "\\USRDIR\\EBOOT.BIN";
-	const wxString& self2 = ctrl.GetPath() + "\\EBOOT.BIN";
-
-	if(wxFile::Access(elf0, wxFile::read))
+	wxString file;
+	
+	for(int i=0;i<(sizeof(path)/sizeof(path[0]));i++)
 	{
-		Emu.SetElf(elf0);
-		ConLog.Write("Elf: booting...");
-	}
-	else if(wxFile::Access(elf1, wxFile::read))
-	{
-		Emu.SetElf(elf1);
-		ConLog.Write("Elf: booting...");
-	}
-	else if(wxFile::Access(elf2, wxFile::read))
-	{
-		Emu.SetElf(elf2);
-		ConLog.Write("Elf: booting...");
-	}
-	else if(wxFile::Access(self0, wxFile::read))
-	{
-		goto _ELF_NOT_FOUND_;
-		Emu.SetSelf(self0);
-		ConLog.Warning("Self: booting...");
-	}
-	else if(wxFile::Access(self1, wxFile::read))
-	{
-		goto _ELF_NOT_FOUND_;
-		Emu.SetSelf(self1);
-		ConLog.Warning("Self: booting...");
-	}
-	else if(wxFile::Access(self2, wxFile::read))
-	{
-		goto _ELF_NOT_FOUND_;
-		Emu.SetSelf(self2);
-		ConLog.Warning("Self: booting...");
-	}
-	else
-	{
-		ConLog.Error("Not found ps3 game in selected folder! (%s)", ctrl.GetPath());
-		return;
+		file = ctrl.GetPath() + path[i];
+		if(wxFile::Access(file, wxFile::read))
+		{
+			Emu.SetElf(file);
+			ConLog.Write("Game: Booting...");
+			Emu.Load();
+			ConLog.Write("Game: Boot done.");
+			return;
+		}
 	}
 
-	Emu.Load();
+	ConLog.Error("PS3 game not found in selected folder! (%s)", ctrl.GetPath());
 
-	ConLog.Write("Game: boot done.");
 	return;
-
-_ELF_NOT_FOUND_:
-	ConLog.Error("Elf not found!");
 }
 
 void MainFrame::BootElf(wxCommandEvent& WXUNUSED(event))
 {
-	bool stoped = false;
+	bool stopped = false;
 
-	if(Emu.IsRunned())
+	if(Emu.IsRunning())
 	{
 		Emu.Pause();
-		stoped = true;
+		stopped = true;
 	}
 
-	wxFileDialog ctrl(this, L"Select ELF", wxEmptyString, wxEmptyString, "*.*",
+	wxFileDialog ctrl(this, L"Select ELF/SELF", wxEmptyString, wxEmptyString, "*.*",
 		wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 
 	if(ctrl.ShowModal() == wxID_CANCEL)
 	{
-		if(stoped) Emu.Resume();
+		if(stopped) Emu.Resume();
 		return;
 	}
 
-	ConLog.Write("Elf: booting...");
+	ConLog.Write("(S)Elf: Booting...");
 
 	Emu.Stop();
 
 	Emu.SetElf(ctrl.GetPath());
 	Emu.Load();
 
-	ConLog.Write("Elf: boot done.");
-}
-
-void MainFrame::BootSelf(wxCommandEvent& WXUNUSED(event))
-{
-	bool stoped = false;
-
-	if(Emu.IsRunned())
-	{
-		Emu.Pause();
-		stoped = true;
-	}
-
-	wxFileDialog ctrl(this, L"Select SELF", wxEmptyString, wxEmptyString, "*.*",
-		wxFD_OPEN | wxFD_FILE_MUST_EXIST);
-
-	if(ctrl.ShowModal() == wxID_CANCEL)
-	{
-		if(stoped) Emu.Resume();
-		return;
-	}
-
-	ConLog.Write("SELF: booting...");
-
-	Emu.Stop();
-
-	Emu.SetSelf(ctrl.GetPath());
-	Emu.Load();
-
-	ConLog.Write("SELF: boot done.");
+	ConLog.Write("(S)Elf: Boot done.");
 }
 
 void MainFrame::Pause(wxCommandEvent& WXUNUSED(event))
@@ -246,7 +187,7 @@ void MainFrame::Pause(wxCommandEvent& WXUNUSED(event))
 	{
 		Emu.Resume();
 	}
-	else if(Emu.IsRunned())
+	else if(Emu.IsRunning())
 	{
 		Emu.Pause();
 	}
@@ -268,7 +209,7 @@ void MainFrame::Config(wxCommandEvent& WXUNUSED(event))
 
 	bool paused = false;
 
-	if(Emu.IsRunned())
+	if(Emu.IsRunning())
 	{
 		Emu.Pause();
 		paused = true;
@@ -427,7 +368,7 @@ void MainFrame::OnKeyDown(wxKeyEvent& event)
 		switch(event.GetKeyCode())
 		{
 		case 'C': case 'c': if(Emu.IsPaused()) Emu.Resume(); else if(Emu.IsReady()) Emu.Run(); return;
-		case 'P': case 'p': if(Emu.IsRunned()) Emu.Pause(); return;
+		case 'P': case 'p': if(Emu.IsRunning()) Emu.Pause(); return;
 		case 'S': case 's': if(!Emu.IsStopped()) Emu.Stop(); return;
 		case 'R': case 'r': if(!Emu.m_path.IsEmpty()) {Emu.Stop(); Emu.Run();} return;
 		}
@@ -443,7 +384,7 @@ void MainFrame::UpdateUI()
 	wxMenuItem& stop  = *menubar.FindItem( id_sys_stop );
 	wxMenuItem& send_exit  = *menubar.FindItem( id_sys_send_exit );
 
-	pause.SetText(Emu.IsRunned() ? "Pause\tCtrl + P" : Emu.IsReady() ? "Start\tCtrl + C" : "Resume\tCtrl + C");
+	pause.SetText(Emu.IsRunning() ? "Pause\tCtrl + P" : Emu.IsReady() ? "Start\tCtrl + C" : "Resume\tCtrl + C");
 	pause.Enable(!Emu.IsStopped());
 	stop.Enable(!Emu.IsStopped());
 	//send_exit.Enable(false);

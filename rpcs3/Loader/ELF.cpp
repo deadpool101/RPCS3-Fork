@@ -9,13 +9,20 @@ ELFLoader::ELFLoader(vfsStream& f)
 {
 }
 
-bool ELFLoader::LoadInfo()
+bool ELFLoader::Validate()
 {
 	if(!elf_f.IsOpened()) return false;
-
+	
 	elf_f.Seek(0);
 	ehdr.Load(elf_f);
 	if(!ehdr.CheckMagic()) return false;
+
+	return true;
+}
+
+bool ELFLoader::LoadInfo()
+{
+	if(!elf_f.IsOpened()) return false;
 
 	switch(ehdr.GetClass())
 	{

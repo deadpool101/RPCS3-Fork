@@ -129,6 +129,7 @@ protected:
 	}
 
 public:
+	virtual bool Validate() { return false; }
 	virtual bool LoadInfo() { return false; }
 	virtual bool LoadData(u64 offset = 0) { return false; }
 	Elf_Machine GetMachine() { return machine; }

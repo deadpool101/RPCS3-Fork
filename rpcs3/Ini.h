@@ -98,11 +98,18 @@ public:
 	IniEntry<u8> GSAspectRatio;
 	IniEntry<bool> GSVSyncEnable;
 	IniEntry<u8> PadHandlerMode;
+	IniEntry<bool> ShowCompilerELF;
+	IniEntry<wxString> GameListPath;
 
 public:
 	Inis() : DefPath("EmuSettings")
 	{
 		wxString path;
+
+		ShowCompilerELF.Init("ShowCompilerELF", "GuiSettings");
+
+		path = DefPath;
+		GameListPath.Init("GameListPath", path);
 
 		path = DefPath + "\\" + "CPU";
 		CPUDecoderMode.Init("DecoderMode", path);
@@ -119,6 +126,8 @@ public:
 
 	void Load()
 	{
+		ShowCompilerELF.Load(false);
+		GameListPath.Load(wxGetCwd());
 		CPUDecoderMode.Load(2);
 		GSRenderMode.Load(0);
 		GSResolution.Load(4);
@@ -129,6 +138,8 @@ public:
 
 	void Save()
 	{
+		ShowCompilerELF.Save();
+		GameListPath.Save();
 		CPUDecoderMode.Save();
 		GSRenderMode.Save();
 		GSResolution.Save();
