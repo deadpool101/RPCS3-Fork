@@ -1,3 +1,31 @@
+# For MSVC
+*.lastcodeanalysissucceeded
+*.pdb
+*.ilk
+*.obj
+*.pch
+*.log
+*.dll
+*.rar
+*.exe
+*.map
+*.lib
+*.user
+*.sdf
+*.ncb
+*.opensdf
+*.suo
+*.aps
+*.exp
+Debug
+DebugFast
+Release
+ipch
+
+libs
+
+# For Mac
+.DS_Store
 # Compiled Object files
 *.slo
 *.lo
